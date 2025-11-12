@@ -122,5 +122,21 @@ function initApp() {
     initEmailJS();
 }
 
+// En main.js, después de initApp()
+async function checkAndShowAdminLink() {
+    const result = await adminDB.isAdmin();
+    const adminNavItem = document.getElementById('admin-nav-item');
+    
+    if (adminNavItem && result.success && result.isAdmin) {
+        adminNavItem.style.display = 'block';
+    }
+}
+
+// Llamar después de que la app esté inicializada
+document.addEventListener('DOMContentLoaded', function() {
+    initApp();
+    checkAndShowAdminLink();
+});
+
 // Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', initApp);

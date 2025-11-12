@@ -51,7 +51,7 @@ function formatOrderItems() {
     return itemsText;
 }
 
-// Función CORREGIDA para enviar el correo
+// Función para enviar el correo
 async function sendOrderEmail(formData) {
     // console.log(' Iniciando envío de correo...');
     
@@ -113,7 +113,15 @@ async function processSuccessfulOrder(formData) {
         // 1. Enviar email (existente)
         await sendOrderEmail(formData);
         
-        // 2. Guardar en Supabase si el usuario está logueado
+        // 2. Actualizar stock en la base de datos
+        for (const cartItem of cart) {
+            const success = await window.productsManager.updateStock(cartItem.id, cartItem.quantity);
+            if (!success) {
+                console.error(`Error actualizando stock para ${cartItem.name}`);
+            }
+        }
+        
+        // 3. Guardar en Supabase si el usuario está logueado
         const user = await supabaseAuth.getCurrentUser();
         if (user) {
             const orderData = {
@@ -128,11 +136,7 @@ async function processSuccessfulOrder(formData) {
             await supabaseDB.saveOrder(orderData);
         }
         
-        // 3. Actualizar stock y limpiar carrito (existente)
-        cart.forEach(cartItem => {
-            updateProductStock(cartItem.id, cartItem.quantity);
-        });
-        
+        // 4. Limpiar carrito
         cart = [];
         localStorage.removeItem('cart');
         updateCartBadge();
